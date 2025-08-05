@@ -10,18 +10,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Task {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  status      TaskStatus @default(PENDING)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Agent {
+  id        Int      @id @default(autoincrement())
+  name      String
+  tasks     Task[]   @relation("AssignedTasks")
+  collab    Task[]   @relation("CollaboratedTasks")
+  logs      Log[]
 }
 
-enum TaskStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
+model Task {
+  id          Int      @id @default(autoincrement())
+  expediente  String   @unique
+  description String
+  status      Status   @default(PENDIENTE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignedTo  Agent?   @relation("AssignedTasks", fields: [agentId], references: [id])
+  agentId     Int?
+
+  collaborator Agent?  @relation("CollaboratedTasks", fields: [collabId], references: [id])
+  collabId     Int?
+
+  logs        Log[]
+  inventoryId Int?
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  message   String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
+  agent     Agent?   @relation(fields: [agentId], references: [id])
+  agentId   Int?
+}
+
+model Inventory {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  type      String
+  tasks     Task[]
+}
+
+enum Status {
+  PENDIENTE
+  EN_PROCESO
+  EN_ESPERA
+  COMPLETADO
 } 

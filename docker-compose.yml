@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 12345678
-      POSTGRES_DB: taskflowdb
+      POSTGRES_DB: tareasdb
     ports:
       - "5432:5432"
     volumes:
@@ -27,7 +27,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: "postgresql://admin:admin@db:5432/taskflowdb?schema=public"
+      DATABASE_URL: "postgresql://admin:12345678@db:5432/tareasdb?schema=public"
 
   frontend:
     build: ./frontend

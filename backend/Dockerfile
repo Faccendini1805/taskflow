@@ -24,7 +24,7 @@ RUN apk add --no-cache openssl
 COPY --from=builder /app ./
 
 # Crear archivo .env con la URL de la base de datos
-RUN echo 'DATABASE_URL="postgresql://admin:12345678@db:5432/taskflowdb?schema=public"' > .env
+RUN echo 'DATABASE_URL="postgresql://admin:12345678@db:5432/tareasdb?schema=public"' > .env
 
 EXPOSE 3000
 
