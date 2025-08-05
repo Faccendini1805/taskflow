@@ -40,7 +40,6 @@ declare module '$env/static/private' {
 	export const CHROME_DESKTOP: string;
 	export const APPDIR: string;
 	export const OLDPWD: string;
-	export const DISABLE_AUTO_UPDATE: string;
 	export const TERM_PROGRAM_VERSION: string;
 	export const DESKTOP_SESSION: string;
 	export const npm_package_json: string;
@@ -48,7 +47,6 @@ declare module '$env/static/private' {
 	export const GIO_LAUNCHED_DESKTOP_FILE: string;
 	export const GNOME_SHELL_SESSION_MODE: string;
 	export const GTK_MODULES: string;
-	export const PAGER: string;
 	export const VSCODE_GIT_ASKPASS_MAIN: string;
 	export const VSCODE_GIT_ASKPASS_NODE: string;
 	export const MANAGERPID: string;
@@ -171,7 +169,6 @@ declare module '$env/dynamic/private' {
 		CHROME_DESKTOP: string;
 		APPDIR: string;
 		OLDPWD: string;
-		DISABLE_AUTO_UPDATE: string;
 		TERM_PROGRAM_VERSION: string;
 		DESKTOP_SESSION: string;
 		npm_package_json: string;
@@ -179,7 +176,6 @@ declare module '$env/dynamic/private' {
 		GIO_LAUNCHED_DESKTOP_FILE: string;
 		GNOME_SHELL_SESSION_MODE: string;
 		GTK_MODULES: string;
-		PAGER: string;
 		VSCODE_GIT_ASKPASS_MAIN: string;
 		VSCODE_GIT_ASKPASS_NODE: string;
 		MANAGERPID: string;

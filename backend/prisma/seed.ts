@@ -10,10 +10,8 @@ async function main() {
   ];
 
   for (const name of agents) {
-    await prisma.agent.upsert({
-      where: { name },
-      update: {},
-      create: { name }
+    await prisma.agent.create({
+      data: { name }
     });
   }
 
