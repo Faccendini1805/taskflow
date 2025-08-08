@@ -10,16 +10,14 @@
 
   const columns = [
     { key: 'PENDIENTE', label: 'Pendiente', color: 'bg-yellow-50 border-yellow-200' },
-    { key: 'EN_PROCESO', label: 'En Proceso', color: 'bg-blue-50 border-blue-200' },
-    { key: 'EN_ESPERA', label: 'En Espera', color: 'bg-orange-50 border-orange-200' },
+    { key: 'EN_PROGRESO', label: 'En Progreso', color: 'bg-blue-50 border-blue-200' },
     { key: 'COMPLETADO', label: 'Completado', color: 'bg-green-50 border-green-200' }
   ];
 
   function getStatusColor(status: string) {
     switch (status) {
       case 'PENDIENTE': return 'bg-yellow-100 text-yellow-800';
-      case 'EN_PROCESO': return 'bg-blue-100 text-blue-800';
-      case 'EN_ESPERA': return 'bg-orange-100 text-orange-800';
+      case 'EN_PROGRESO': return 'bg-blue-100 text-blue-800';
       case 'COMPLETADO': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -38,7 +36,7 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {#each columns as column}
       <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <div class="p-4 border-b border-gray-200">

@@ -1,21 +1,145 @@
 const express = require('express');
 const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
+const { taskValidationRules, validate, errorHandler } = require('./middlewares/validators');
+const { limiter, securityHeaders, sanitizeInput, corsOptions } = require('./middlewares/security');
 
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Security Middleware
+app.use(securityHeaders);
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10kb' })); // Limit request body size
+app.use(sanitizeInput);
 
-// Health check endpoint
+// Apply rate limiting to API routes
+app.use('/api/', limiter);
+
+// Health check endpoint (no rate limiting)
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'TaskFlow API is running' });
 });
 
+// Error handling middleware (must be after routes)
+app.use(errorHandler);
+
+
+
 // API Routes - Agents
+// Create agent
+app.post('/api/agents', async (req, res) => {
+  try {
+    const { name, email, role } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+    
+    const agent = await prisma.agent.create({
+      data: {
+        name,
+        email: email || null,
+        role: role || 'AGENT'
+      }
+    });
+    
+    res.status(201).json(agent);
+  } catch (error) {
+    console.error('Error creating agent:', error);
+    res.status(500).json({ error: 'Failed to create agent' });
+  }
+});
+
+// Get agent by ID
+app.get('/api/agents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const agent = await prisma.agent.findUnique({
+      where: { id: Number(id) },
+      include: {
+        assignedTasks: true,
+        collaboratorTasks: true,
+        logs: {
+          orderBy: { createdAt: 'desc' },
+          take: 10
+        }
+      }
+    });
+    
+    if (!agent) {
+      return res.status(404).json({ error: 'Agent not found' });
+    }
+    
+    res.json(agent);
+  } catch (error) {
+    console.error('Error fetching agent:', error);
+    res.status(500).json({ error: 'Failed to fetch agent' });
+  }
+});
+
+// Update agent
+app.put('/api/agents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, role } = req.body;
+    
+    const updatedAgent = await prisma.agent.update({
+      where: { id: Number(id) },
+      data: {
+        name,
+        email,
+        role
+      }
+    });
+    
+    res.json(updatedAgent);
+  } catch (error) {
+    console.error('Error updating agent:', error);
+    
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Agent not found' });
+    }
+    
+    res.status(500).json({ error: 'Failed to update agent' });
+  }
+});
+
+// Delete agent
+app.delete('/api/agents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // First, update any tasks that reference this agent
+    await prisma.task.updateMany({
+      where: { agentId: Number(id) },
+      data: { agentId: null }
+    });
+    
+    await prisma.task.updateMany({
+      where: { collabId: Number(id) },
+      data: { collabId: null }
+    });
+    
+    // Then delete the agent
+    await prisma.agent.delete({
+      where: { id: Number(id) }
+    });
+    
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting agent:', error);
+    
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Agent not found' });
+    }
+    
+    res.status(500).json({ error: 'Failed to delete agent' });
+  }
+});
+
+// List all agents
 app.get('/api/agents', async (req, res) => {
   try {
     const agents = await prisma.agent.findMany({
@@ -46,7 +170,7 @@ app.get('/api/tasks', async (req, res) => {
   }
 });
 
-app.post('/api/tasks', async (req, res) => {
+app.post('/api/tasks', taskValidationRules, validate, async (req, res) => {
   try {
     const { expediente, description, agentId, collabId, inventoryCode, status } = req.body;
 
@@ -103,7 +227,7 @@ app.post('/api/tasks', async (req, res) => {
   }
 });
 
-app.put('/api/tasks/:id', async (req, res) => {
+app.put('/api/tasks/:id', taskValidationRules, validate, async (req, res) => {
   try {
     const { id } = req.params;
     const { status, agentId, collabId, description } = req.body;
@@ -172,6 +296,56 @@ app.get('/api/tasks/check/:expediente', async (req, res) => {
   } catch (error) {
     console.error('Error checking expediente:', error);
     res.status(500).json({ error: 'Failed to check expediente' });
+  }
+});
+
+// Get task by ID
+app.get('/api/tasks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await prisma.task.findUnique({
+      where: { id: Number(id) },
+      include: {
+        assignedTo: true,
+        collaborator: true,
+        inventory: true,
+        logs: {
+          include: { agent: true },
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    res.json(task);
+  } catch (error) {
+    console.error('Error fetching task:', error);
+    res.status(500).json({ error: 'Failed to fetch task' });
+  }
+});
+
+// Delete task
+app.delete('/api/tasks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // First delete related logs
+    await prisma.log.deleteMany({
+      where: { taskId: Number(id) }
+    });
+    
+    // Then delete the task
+    await prisma.task.delete({
+      where: { id: Number(id) }
+    });
+    
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    res.status(500).json({ error: 'Failed to delete task' });
   }
 });
 
