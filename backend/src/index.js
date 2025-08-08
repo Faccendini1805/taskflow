@@ -2,9 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const { PrismaClient } = require('@prisma/client');
-const { taskValidationRules, validate, errorHandler } = require('./middlewares/validators');
+const { taskValidationRules, validate, errorHandler, loginValidationRules, authErrorHandler } = require('./middlewares/validators');
 const { limiter, securityHeaders, sanitizeInput, corsOptions } = require('./middlewares/security');
 const webSocketService = require('./services/websocket');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -28,7 +30,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'TaskFlow API is running' });
 });
 
+// API Routes
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
+
 // Error handling middleware (must be after routes)
+app.use(authErrorHandler);
 app.use(errorHandler);
 
 

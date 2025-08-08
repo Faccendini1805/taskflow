@@ -2,6 +2,19 @@ const { body, validationResult } = require('express-validator');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// Validation rules for authentication
+exports.loginValidationRules = [
+  body('email')
+    .trim()
+    .notEmpty().withMessage('Email es requerido')
+    .isEmail().withMessage('Email inválido')
+    .normalizeEmail(),
+    
+  body('password')
+    .notEmpty().withMessage('Contraseña es requerida')
+    .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres')
+];
+
 // Validation rules for tasks
 exports.taskValidationRules = [
   body('expediente')
@@ -46,7 +59,34 @@ exports.validate = (req, res, next) => {
   return res.status(422).json({ errors: extractedErrors });
 };
 
-// Error handler
+// Error handler for authentication
+exports.authErrorHandler = (err, req, res, next) => {
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Error de validación',
+      errors: err.details
+    });
+  }
+  
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({
+      status: 'error',
+      message: 'Token inválido'
+    });
+  }
+  
+  if (err.name === 'TokenExpiredError') {
+    return res.status(401).json({
+      status: 'error',
+      message: 'Token expirado. Por favor inicia sesión nuevamente.'
+    });
+  }
+  
+  next(err);
+};
+
+// Global error handler
 exports.errorHandler = (err, req, res, next) => {
   console.error(err.stack);
   

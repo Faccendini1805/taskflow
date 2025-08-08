@@ -12,7 +12,9 @@
     "test:coverage": "NODE_ENV=test jest --coverage",
     "db:seed": "ts-node prisma/seed.ts",
     "db:migrate": "npx prisma migrate dev",
-    "db:generate": "npx prisma generate"
+    "db:generate": "npx prisma generate",
+    "create:admin": "node scripts/createAdmin.js",
+    "postinstall": "npm run db:generate && npm run create:admin"
   },
   "dependencies": {
     "@prisma/client": "^5.7.0",

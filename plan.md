@@ -212,10 +212,12 @@
   - [x] Por agente asignado
   - [x] Por rango de fechas
   - [x] Búsqueda por texto
-- [ ] **Autenticación (Opcional)**
-  - [ ] Login/Logout
-  - [ ] Control de acceso basado en roles
-  - [ ] Perfiles de usuario
+- [x] **Autenticación**
+  - [x] Login/Logout
+  - [x] Control de acceso basado en roles (RBAC)
+  - [x] Perfiles de usuario
+  - [x] Cambio de contraseña
+  - [x] Dashboard de usuario
 
 ## 🛠️ Flujo de Desarrollo
 
