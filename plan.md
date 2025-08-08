@@ -194,11 +194,11 @@
   - [x] Estructura para autenticación
 
 ### Frontend
-- [ ] **Tablero Kanban**
-  - [ ] Columnas por estado (Pendiente, En Progreso, Completado)
-  - [ ] Arrastrar y soltar tareas entre columnas
-  - [ ] Actualización en tiempo real
-  - [ ] Indicadores visuales de estado
+- [x] **Tablero Kanban**
+  - [x] Columnas por estado (Pendiente, En Progreso, Completado)
+  - [x] Arrastrar y soltar tareas entre columnas
+  - [x] Actualización en tiempo real (WebSockets)
+  - [x] Indicadores visuales de estado
 - [ ] **Gestión de Tareas**
   - [ ] Formulario de alta/edición
   - [ ] Búsqueda y filtrado avanzado
