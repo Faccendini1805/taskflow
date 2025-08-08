@@ -1,12 +1,18 @@
 const express = require('express');
 const cors = require('cors');
+const http = require('http');
 const { PrismaClient } = require('@prisma/client');
 const { taskValidationRules, validate, errorHandler } = require('./middlewares/validators');
 const { limiter, securityHeaders, sanitizeInput, corsOptions } = require('./middlewares/security');
+const webSocketService = require('./services/websocket');
 
 const app = express();
+const server = http.createServer(app);
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
+
+// Initialize WebSocket server
+webSocketService.initialize(server);
 
 // Security Middleware
 app.use(securityHeaders);
@@ -211,6 +217,9 @@ app.post('/api/tasks', taskValidationRules, validate, async (req, res) => {
       }
     });
 
+    // Emit WebSocket event
+    webSocketService.broadcastTaskCreated(task);
+
     // Create initial log entry
     await prisma.log.create({
       data: {
@@ -277,6 +286,9 @@ app.put('/api/tasks/:id', taskValidationRules, validate, async (req, res) => {
         }
       });
     }
+
+    // Emit WebSocket event
+    webSocketService.broadcastTaskUpdated(updatedTask);
 
     res.json(updatedTask);
   } catch (error) {
@@ -384,13 +396,17 @@ app.post('/api/logs', async (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`TaskFlow API server running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`WebSocket server is running on port ${PORT}`);
 });
+
+// Export the server for testing
+module.exports = { app, server };
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
   await prisma.$disconnect();
   process.exit(0);
-}); 
+});
