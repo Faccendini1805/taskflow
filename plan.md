@@ -171,7 +171,7 @@
   - [~] **Expediente único**
     - [x] Validación en creación
     - [x] Validación en actualización (permitir mismo expediente en la misma tarea)
-    - [ ] Pruebas unitarias
+    - [x] Pruebas unitarias
   
   - [x] **Validación de fechas y estados**
     - [x] Formato de fechas ISO8601
@@ -199,19 +199,19 @@
   - [x] Arrastrar y soltar tareas entre columnas
   - [x] Actualización en tiempo real (WebSockets)
   - [x] Indicadores visuales de estado
-- [ ] **Gestión de Tareas**
-  - [ ] Formulario de alta/edición
-  - [ ] Búsqueda y filtrado avanzado
-  - [ ] Ordenamiento por diferentes criterios
-- [ ] **Bitácora de Actividades**
-  - [ ] Modal con historial de cambios
-  - [ ] Filtros por fecha y tipo de acción
-  - [ ] Exportación a CSV/PDF
-- [ ] **Filtros Avanzados**
-  - [ ] Por estado de tarea
-  - [ ] Por agente asignado
-  - [ ] Por rango de fechas
-  - [ ] Búsqueda por texto
+- [x] **Gestión de Tareas**
+  - [x] Formulario de alta/edición
+  - [x] Búsqueda y filtrado avanzado
+  - [x] Ordenamiento por diferentes criterios
+- [x] **Bitácora de Actividades**
+  - [x] Modal con historial de cambios
+  - [x] Filtros por fecha y tipo de acción
+  - [x] Exportación a CSV/PDF
+- [x] **Filtros Avanzados**
+  - [x] Por estado de tarea
+  - [x] Por agente asignado
+  - [x] Por rango de fechas
+  - [x] Búsqueda por texto
 - [ ] **Autenticación (Opcional)**
   - [ ] Login/Logout
   - [ ] Control de acceso basado en roles

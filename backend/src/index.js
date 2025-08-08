@@ -161,7 +161,49 @@ app.get('/api/agents', async (req, res) => {
 // API Routes - Tasks
 app.get('/api/tasks', async (req, res) => {
   try {
+    const { status, agentId, search, startDate, endDate } = req.query;
+    
+    // Build the where clause for filtering
+    const where = {};
+    
+    // Filter by status
+    if (status) {
+      where.status = status;
+    }
+    
+    // Filter by agent
+    if (agentId) {
+      where.OR = [
+        { agentId: Number(agentId) },
+        { collabId: Number(agentId) }
+      ];
+    }
+    
+    // Search in expediente or description
+    if (search) {
+      where.OR = [
+        ...(where.OR || []),
+        { expediente: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    
+    // Filter by date range
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        // Include the entire end date
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        where.createdAt.lte = endOfDay;
+      }
+    }
+    
     const tasks = await prisma.task.findMany({
+      where,
       include: {
         assignedTo: true,
         collaborator: true,
@@ -169,6 +211,7 @@ app.get('/api/tasks', async (req, res) => {
       },
       orderBy: { createdAt: 'desc' }
     });
+    
     res.json(tasks);
   } catch (error) {
     console.error('Error fetching tasks:', error);
