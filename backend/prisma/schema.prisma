@@ -1,0 +1,221 @@
+// backend/prisma/schema.prisma
+
+// ---------- Generador y datasource ----------
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+enum UserRole {
+  ADMIN
+  SUPERVISOR
+  AGENT
+  AUDITOR
+}
+
+enum Status {
+  PENDIENTE
+  EN_PROCESO
+  EN_ESPERA
+  COMPLETADO
+  CANCELADO
+}
+
+enum Priority {
+  BAJA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum MemberRole {
+  OWNER
+  COLLABORATOR
+}
+
+enum Action {
+  CREATE
+  UPDATE
+  STATUS_CHANGE
+  COMMENT
+  ASSIGN
+  ATTACH
+}
+
+// ---------- Usuarios y agentes ----------
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      UserRole @default(AGENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  agent     Agent?
+
+  @@map("users")
+}
+
+model Agent {
+  id               Int            @id @default(autoincrement())
+  name             String
+  email            String?        @unique
+  user             User?          @relation(fields: [userId], references: [id])
+  userId           Int?           @unique
+  tasks            TaskMember[]
+  logs             Log[]
+  statusChanges    StatusChange[] @relation("StatusChangeChangedBy")
+  addedAttachments Attachment[]   @relation("AttachmentAddedBy")
+
+  @@map("agents")
+}
+
+// ---------- Organización ----------
+model Area {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  tasks Task[]
+
+  @@map("areas")
+}
+
+// ---------- Tareas y relaciones ----------
+model Task {
+  id          Int       @id @default(autoincrement())
+  expediente  String    @unique
+  description String
+  status      Status    @default(PENDIENTE)
+  priority    Priority  @default(MEDIA)
+  dueDate     DateTime?
+  startedAt   DateTime?
+  closedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Clasificación
+  areaId Int?
+  area   Area? @relation(fields: [areaId], references: [id])
+
+  // Inventario (opcional)
+  inventoryId Int?
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
+
+  // Miembros (owner + colaboradores)
+  members TaskMember[]
+
+  // Auditoría
+  logs          Log[]
+  statusHistory StatusChange[]
+  attachments   Attachment[]
+  tags          TaskTag[]
+
+  // Origen externo
+  source ExternalSource?
+
+  @@index([status])
+  @@index([areaId])
+  @@index([priority])
+  @@index([closedAt])
+}
+
+model TaskMember {
+  taskId   Int
+  agentId  Int
+  role     MemberRole @default(COLLABORATOR)
+  joinedAt DateTime   @default(now())
+
+  task  Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, agentId])
+  @@index([agentId])
+}
+
+model StatusChange {
+  id          Int      @id @default(autoincrement())
+  taskId      Int
+  oldStatus   Status?
+  newStatus   Status
+  reason      String?
+  changedById Int?
+  changedBy   Agent?   @relation("StatusChangeChangedBy", fields: [changedById], references: [id])
+  createdAt   DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([createdAt])
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  action    Action
+  message   String
+  taskId    Int
+  agentId   Int?
+  createdAt DateTime @default(now())
+
+  task  Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  agent Agent? @relation(fields: [agentId], references: [id])
+
+  @@index([taskId])
+  @@index([createdAt])
+}
+
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  filename  String
+  mimeType  String
+  url       String // o ruta local tipo /uploads/...
+  addedById Int?
+  addedBy   Agent?   @relation("AttachmentAddedBy", fields: [addedById], references: [id])
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([createdAt])
+}
+
+// ---------- Etiquetas ----------
+model Tag {
+  id    Int       @id @default(autoincrement())
+  name  String    @unique
+  tasks TaskTag[]
+}
+
+model TaskTag {
+  taskId Int
+  tagId  Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+  @@index([tagId])
+}
+
+// ---------- Inventario ----------
+model Inventory {
+  id    Int    @id @default(autoincrement())
+  code  String @unique
+  type  String
+  tasks Task[]
+}
+
+// ---------- Fuente externa ----------
+model ExternalSource {
+  id         Int      @id @default(autoincrement())
+  system     String // "HCD", "MesaEntrada", etc.
+  externalId String
+  fetchedAt  DateTime @default(now())
+  raw        Json?
+  taskId     Int      @unique
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([system, externalId])
+}

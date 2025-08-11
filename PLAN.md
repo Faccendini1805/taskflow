@@ -6,63 +6,70 @@
 # Plan Maestro - Taskflow
 
 ## 1. Objetivo
-Implementar un sistema integral de gestión de tareas para el área, que permita:
-- Registrar y asignar tareas.
-- Monitorear su avance.
-- Auditar acciones y cambios.
-- Integrarse con fuentes externas de tickets.
+Implementar un sistema integral de gestión de tareas que permita:
+- Registrar, asignar y auditar tareas.
+- Monitorear su avance y estado.
+- Integrarse con sistemas de ticketing externos.
+
+---
 
 ## 2. Alcance funcional
 - CRUD de tareas.
 - Roles de usuario (ADMIN, SUPERVISOR, AGENT, AUDITOR).
 - Asignación de dueños y colaboradores.
-- Cambios de estado con historial.
-- Gestión de adjuntos y etiquetas.
-- Panel de métricas (lead time, throughput, backlog).
+- Historial de cambios de estado.
+- Adjuntos y etiquetas.
+- Panel de métricas y reportes.
 - Integración de tickets externos (HCD).
 
+---
+
 ## 3. Alcance técnico
-- **Frontend**: SvelteKit 2 + Tailwind CSS 4 + TypeScript.
-- **Backend**: Node.js + Express + Prisma + PostgreSQL.
+- **Frontend**: SvelteKit 2, Tailwind CSS 4, TypeScript.
+- **Backend**: Node.js, Express, Prisma, PostgreSQL.
 - **Infraestructura**: Docker, Docker Compose, pgAdmin.
-- **Integraciones**: módulo de scraping/API HCD.
+- **Estructura modular** en `/backend/src/modules` y `/frontend/src/lib`.
+
+---
 
 ## 4. Arquitectura
-- Monorepo: `/frontend` y `/backend` separados.
-- Backend: API RESTful con control de acceso por roles.
-- Base de datos: PostgreSQL con Prisma ORM.
-- Frontend: SPA con SvelteKit, comunicación vía fetch/REST.
-- Infraestructura: contenedores orquestados con Docker Compose.
+- Monorepo: carpetas `frontend` y `backend`.
+- Backend modular con capas **controller → service → repository**.
+- Base de datos gestionada por Prisma ORM.
+- Frontend con SvelteKit, comunicación vía API REST.
+- Jobs automáticos para sincronización externa.
+
+---
 
 ## 5. Seguridad
-- Autenticación JWT.
+- Autenticación con JWT.
 - Autorización por roles (RBAC).
-- Sanitización de entradas y validación de datos.
-- Limitación de tamaño de archivos adjuntos.
-- Variables de entorno para credenciales.
+- Validación y sanitización de inputs.
+- Control de tamaño y tipo de archivos adjuntos.
+
+---
 
 ## 6. Plan de desarrollo
-1. Definición y migración de schema de base de datos.
-2. Backend:
-   - Rutas de autenticación y usuarios.
-   - CRUD de tareas.
-   - Endpoints de asignación, cambios de estado, adjuntos.
-   - Integración con tickets externos.
-3. Frontend:
-   - Login y dashboard.
-   - Vista Kanban y lista filtrable.
-   - Vista detalle con historial y adjuntos.
-4. Métricas y reportes.
-5. Pruebas e implementación en entorno de producción.
+1. Configuración inicial del monorepo y estructura de carpetas.
+2. Implementar backend básico (auth, CRUD tareas).
+3. Implementar frontend básico (login, dashboard, lista de tareas).
+4. Añadir funcionalidades avanzadas (colaboradores, adjuntos, historial).
+5. Integrar ingestión de tickets externos.
+6. Panel de métricas y optimización.
+7. Despliegue y documentación final.
+
+---
 
 ## 7. KPIs
-- % tareas completadas en plazo.
+- % de tareas completadas en plazo.
 - Tiempo promedio de ciclo.
-- Tareas en espera > X días.
 - Productividad por agente.
+- Número de tareas en espera > X días.
+
+---
 
 ## 8. Entregables
-- Backend funcional con API documentada.
+- Backend con API REST documentada.
 - Frontend responsive con tablero y reportes.
 - Documentación técnica y manual de usuario.
-- Integración de ingestión de tickets externos.
+- Integración con ticketing externo.

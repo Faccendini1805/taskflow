@@ -1,0 +1,14 @@
+{
+  "name": "taskflow",
+  "private": true,
+  "scripts": {
+    "up": "docker compose up -d db backend",
+    "down": "docker compose down",
+    "logs": "docker compose logs -f backend",
+    "migrate": "docker compose exec backend npx prisma migrate deploy",
+    "seed": "docker compose exec backend npx prisma db seed"
+  },
+  "dependencies": {
+    "node-cron": "^4.2.1"
+  }
+}
