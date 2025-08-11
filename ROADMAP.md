@@ -13,16 +13,20 @@
 - [x] Implementar módulo de autenticación (login, registro, JWT).
 - [x] Configuración de variables de entorno con validación.
 - [x] Sistema de logging estructurado con Pino.
-- [ ] CRUD de usuarios y roles.
-- [ ] CRUD de tareas (sin relaciones complejas).
+- [x] CRUD de usuarios y roles.
+- [x] CRUD de tareas (sin relaciones complejas).
+- [x] Middlewares de validación y autorización.
+- [x] Utilidades comunes (fechas, archivos, mapeos)
 
 ---
 
 ## Fase 2 - Funcionalidades de tareas (Semana 4-5)
-- [ ] Asignación de dueños y colaboradores.
-- [ ] Historial de cambios de estado.
-- [ ] Adjuntos y etiquetas.
-- [ ] Middlewares de validación y autorización.
+- [x] Asignación de dueños y colaboradores.
+- [x] Historial de cambios de estado.
+- [x] Adjuntos y etiquetas.
+- [ ] Integración con servicios externos (HCD, etc.)
+- [ ] Sistema de notificaciones
+- [ ] Reportes básicos
 
 ---
 
