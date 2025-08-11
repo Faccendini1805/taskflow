@@ -30,11 +30,17 @@
 
 ---
 
-## Fase 3 - Frontend inicial (Semana 6-7)
-- [ ] Login y logout.
-- [ ] Dashboard con resumen.
-- [ ] Lista y vista de detalle de tareas.
-- [ ] Estilos globales con Tailwind CSS.
+## Fase 3 - Frontend (Semana 6-7)
+- [x] Componentes base UI (Navbar, Sidebar, Tarjetas)
+- [x] Tablero Kanban con arrastrar y soltar
+- [ ] Sistema de autenticación (login/logout)
+- [ ] Dashboard con métricas y resumen
+- [ ] Lista de tareas con filtros y búsqueda
+- [ ] Formulario de creación/edición de tareas
+- [ ] Vista detallada de tarea
+- [ ] Integración con API del backend
+- [ ] Manejo de estados global (stores)
+- [ ] Estilos y temas con Tailwind CSS
 
 ---
 
@@ -53,7 +59,4 @@
 ---
 
 ## Fase 6 - Despliegue y cierre (Semana 10)
-- [ ] Pruebas integrales.
 - [ ] Optimización de consultas e índices.
-- [ ] Despliegue en producción.
-- [ ] Documentación final y capacitación.
