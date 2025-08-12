@@ -1,20 +1,15 @@
+// src/lib/stores/auth.store.ts
 import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
+import { http, setAuthToken } from '$lib/utils/fetchClient';
 
-// Si tenés un cliente central: $lib/utils/fetchClient.ts
-// exporta setAuthToken(token?: string) y http.{get,post,patch,del}
-// Ajustá estos imports a tu implementación real:
-let setAuthToken: (t?: string) => void = () => {};
-let http: any = null;
-(async () => {
-  try {
-    const mod = await import('$lib/utils/fetchClient');
-    setAuthToken = mod.setAuthToken ?? setAuthToken;
-    http = mod.http ?? http;
-  } catch { /* fallback a fetch nativo */ }
-})();
+export type AuthUser = {
+  id: number;
+  email: string;
+  role: 'ADMIN' | 'SUPERVISOR' | 'AGENT' | 'AUDITOR';
+  name?: string;
+};
 
-export type AuthUser = { id: number; email: string; role: 'ADMIN'|'SUPERVISOR'|'AGENT'|'AUDITOR'; name?: string };
 type AuthState = {
   user: AuthUser | null;
   token: string | null;
@@ -34,8 +29,10 @@ function createAuthStore() {
       try {
         const parsed = JSON.parse(raw) as { user: AuthUser; token: string };
         set({ user: parsed.user, token: parsed.token, loading: false, error: null });
-        setAuthToken?.(parsed.token);
-      } catch { /* ignore */ }
+        setAuthToken(parsed.token);
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -49,54 +46,33 @@ function createAuthStore() {
   }
 
   async function login(email: string, password: string) {
-    update(s => ({ ...s, loading: true, error: null }));
+    update((s) => ({ ...s, loading: true, error: null }));
     try {
-      let data: any;
-      if (http) {
-        data = await http.post('/api/auth/login', { email, password });
-      } else {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        if (!res.ok) throw new Error((await res.json()).error ?? 'Login failed');
-        data = await res.json();
-      }
+      const data = await http.post<{ user: AuthUser; token: string }>('/api/auth/login', { email, password });
       const { user, token } = data;
       set({ user, token, loading: false, error: null });
-      setAuthToken?.(token);
+      setAuthToken(token);
       persist({ user, token, loading: false, error: null });
       return user;
     } catch (err: any) {
       const msg = err?.message ?? 'Error de autenticación';
-      update(s => ({ ...s, loading: false, error: msg }));
+      update((s) => ({ ...s, loading: false, error: msg }));
       throw err;
     }
   }
 
   async function register(payload: { email: string; password: string; name?: string; role?: AuthUser['role'] }) {
-    update(s => ({ ...s, loading: true, error: null }));
+    update((s) => ({ ...s, loading: true, error: null }));
     try {
-      let data: any;
-      if (http) data = await http.post('/api/auth/register', payload);
-      else {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error((await res.json()).error ?? 'Register failed');
-        data = await res.json();
-      }
+      const data = await http.post<{ user: AuthUser; token: string }>('/api/auth/register', payload);
       const { user, token } = data;
       set({ user, token, loading: false, error: null });
-      setAuthToken?.(token);
+      setAuthToken(token);
       persist({ user, token, loading: false, error: null });
       return user;
     } catch (err: any) {
       const msg = err?.message ?? 'Error al registrar';
-      update(s => ({ ...s, loading: false, error: msg }));
+      update((s) => ({ ...s, loading: false, error: msg }));
       throw err;
     }
   }
@@ -104,7 +80,7 @@ function createAuthStore() {
   function logout() {
     const next = { ...initial };
     set(next);
-    setAuthToken?.(undefined);
+    setAuthToken(undefined);
     persist(next);
   }
 
@@ -113,7 +89,7 @@ function createAuthStore() {
     login,
     register,
     logout,
-    set: (s: Partial<AuthState>) => update(v => ({ ...v, ...s }))
+    set: (s: Partial<AuthState>) => update((v) => ({ ...v, ...s }))
   };
 }
 
