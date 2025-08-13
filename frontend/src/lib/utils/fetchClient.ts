@@ -3,7 +3,8 @@ import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 
 let authToken: string | undefined;
-let baseURL = browser ? '' : 'http://localhost:3000'; // Ajusta si usas proxy
+// On the server (SSR), call backend directly; in browser, use Vite proxy ('')
+let baseURL = browser ? '' : 'http://localhost:3001';
 
 export function setAuthToken(token?: string) {
   authToken = token;

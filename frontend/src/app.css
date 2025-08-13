@@ -1,2 +1,22 @@
-/* src/app.css */
-@import './lib/styles/tailwind.css';
+/* Tailwind CSS base file */
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply font-sans; }
+}
+
+@layer components {
+  .btn {
+    @apply inline-block text-center align-middle cursor-pointer select-none rounded px-3 py-2 transition-colors duration-150;
+  }
+  .btn-primary {
+    @apply btn text-white bg-primary hover:bg-[#0069d9] disabled:opacity-60;
+  }
+  .btn-secondary {
+    @apply btn text-white bg-secondary hover:bg-[#545b62] disabled:opacity-60;
+  }
+}

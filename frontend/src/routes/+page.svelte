@@ -1,22 +1,8 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
+  import { browser } from '$app/environment';
   import KanbanBoard from '$lib/components/KanbanBoard.svelte';
   import { tasks, tasksByStatus } from '$lib/stores/tasks.store';
-  import { onMount } from 'svelte';
-
-  onMount(() => { tasks.list().catch(console.error); });
-
-  function handleMove(e: CustomEvent<{ taskId: number; toStatus: any }>) {
-    const { taskId, toStatus } = e.detail;
-    tasks.changeStatus(taskId, toStatus).catch(console.error);
-  }
-</script>
-
-<section class="space-y-4">
-  <h1 class="text-xl font-semibold">Tablero</h1>
-  <KanbanBoard tasksByStatus={$tasksByStatus} on:move={handleMove} />
-</section>
-<script lang="ts">
-  import { onMount } from 'svelte';
   import { http } from '$lib/utils/fetchClient';
 
   type Summary = {
@@ -41,16 +27,72 @@
   let summary: Summary | null = null;
   let recent: Task[] = [];
 
-  onMount(async () => {
-    loading = true; error = null;
-    try {
-      // Resumen
-      summary = await http.get<Summary>('/api/reports/summary');
+  // Client-side only code
+  if (browser) {
+    onMount(async () => {
+      loading = true;
+      error = null;
+      
+      try {
+        // Load tasks for the Kanban board
+        await tasks.list();
+        
+        // Load dashboard summary
+        try {
+          summary = await http.get<Summary>('/api/reports/summary');
+        } catch (e) {
+          console.error('Error loading dashboard summary:', e);
+          // Continue even if summary fails
+        }
+        
+        // Load recent tasks
+        try {
+          const response = await http.get<Task[]>('/api/tasks/recent');
+          recent = response || [];
+        } catch (e) {
+          console.error('Error loading recent tasks:', e);
+          recent = [];
+        }
+      } catch (e) {
+        console.error('Error loading dashboard data:', e);
+        error = 'Error al cargar el tablero. Por favor, recarga la página.';
+      } finally {
+        loading = false;
+      }
+    });
+  } else {
+    // Server-side rendering - don't load data
+    loading = false;
+  }
 
-      // Últimas 8 tareas (ordenadas por fecha desc)
-      const q = new URLSearchParams({ page: '1', pageSize: '8' }).toString();
-      recent = await http.get<Task[]>(`/api/tasks?${q}`);
-    } catch (e: any) {
+  function handleMove(e: CustomEvent<{ taskId: number; toStatus: any }>) {
+    if (!browser) return;
+    const { taskId, toStatus } = e.detail;
+    tasks.changeStatus(taskId, toStatus).catch(console.error);
+  }
+</script>
+
+<section class="space-y-4">
+  <h1 class="text-xl font-semibold">Tablero</h1>
+  {#if loading}
+    <div class="text-center p-8">Cargando tablero...</div>
+  {:else if error}
+    <div class="bg-red-50 border-l-4 border-red-400 p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-red-700">{error}</p>
+        </div>
+      </div>
+    </div>
+  {:else}
+    <KanbanBoard tasksByStatus={$tasksByStatus} on:move={handleMove} />
+  {/if}
+</section>
       error = e?.message ?? 'Error cargando el dashboard';
     } finally {
       loading = false;

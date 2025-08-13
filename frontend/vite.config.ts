@@ -1,7 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import type { UserConfig } from 'vite';
 
-const BACKEND = process.env.BACKEND_URL || 'http://localhost:4000';
+const BACKEND = process.env.BACKEND_URL || 'http://localhost:3001';
 
 const config: UserConfig = {
   plugins: [sveltekit()],
